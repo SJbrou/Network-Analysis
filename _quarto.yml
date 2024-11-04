@@ -9,10 +9,10 @@ book:
   chapters:
     - text: "Home"
       file: index.qmd
-#    - part: "Tutorials"
-#      chapters:
-#        - text: "Tutorial 1"
-#          file: tutorial1.qmd
+    - part: "Assignments"
+      chapters:
+        - text: "Assignment 2"
+          file: assignment2.qmd
 #    - part: "Data Analysis"
 #      chapters:
     #     - text: "Participants"

@@ -1,9 +1,162 @@
-# Introduction
+---
+format: 
+  html:
+    code-fold: show
+    toc: false
+    margin-left: 2rem
+    margin-right: 2rem
+    width: full
+---
 
-This is a book created from markdown and executable code.
+# Assignment week 2 {.unnumbered}
 
-See @knuth84 for additional discussion of literate programming.
+Questions can be found on [canvas](https://canvas.vu.nl/courses/78407/assignments/361410)
 
-```{r}
-1 + 1
+## Question 1.
+
+**Clustering Coefficient of B:**
+- *Direct neighbors of B*: A, C, E, F, & G → \( n = 5 \)
+- *Potential links*: \( \frac{n(n-1)}{2} \) → \( \frac{5(5-1)}{2} = 10 \) potential links
+- *Existing links between neighbors*: A-C, A-E, E-F, F-G (4 links)
+- *Clustering coefficient of B*: \( \frac{4}{10} = 0.4 \)
+
+**Clustering Coefficient of G:**
+- *Direct neighbors of G*: A, D, & F → \( n = 3 \)
+- *Potential links*: \( \frac{n(n-1)}{2} \) → \( \frac{3(3-1)}{2} = 3 \) potential links
+- *Existing link between neighbors*: B-F (1 link)
+- *Clustering coefficient of G*: \( \frac{1}{3} \approx 0.33 \)
+
+
+## Question 2
+
+Assuming higher values correspond to higher payoffs there is one dominant theory for all players, and thus 1 equilibrium.
+
+|     |         |
+|-----|---------|
+| 1,4 | **6,5** |
+| 3,3 | 4,2     |
+
+## Question 3
+
+a\. Table:
+
+|           |            |           |           |
+|-----------|------------|-----------|-----------|
+|           | Product A  | Product B | Not enter |
+| Product A | -10M, -10M | 10M, 10M  | 15M, 0    |
+| Product B | 10M, 10M   | 5M, 5M    | 15M, 0    |
+| Not enter | 0, 15M     | 0, 15M    | 0,0       |
+
+B. One of your employees argues that you should enter the market (although he is not sure\
+what product you should produce) because no matter what firm 2 does, entering and\
+producing product B is better than not entering. Evaluate this argument.\
+*Obviously making any profit can be valued over making no profit. Thus producing product B \> not entering the market*
+
+C. Another employee agrees with the person in part (b) and argues that as strategy A could\
+result in a loss (if the other firm also produces A) you should enter and produce B. If both\
+firms reason this way, and thus enter and produce product B, will their play of the game\
+form a Nash equilibrium? Explain.\
+*This is NOT a Nash equilibrium as each firm has a better alternative: they can increase profits by switching to product A if they know the other is producing the other product.* 
+
+D. find all the pure strategy Nash equilibria of this game\
+*(Product A, Product B) or (Product B, Product A)*
+
+E. Another employee of your firm suggests merging the two firms and deciding co-operatively\
+on strategies so as to maximize the sum of profits. Ignoring whether this merger would\
+be allowed by the regulators do you think its a good idea? Explain.\
+
+No. In a merger the maximal profit would be 20M. Assume one firm starts producing product A, the optimal strategy for the other firm is to produce the other product, in which case the total profits of the firms combined would also be 20M. As it is in both firms intrests to follow the cooperative strategy, there is no incentive to merge.
+
+
+## Question 4
+
+Before starting the exercises, lets clear the workspace and load dependencies.
+
+```{r setup, results='hide'}
+# Clear workspace
+rm(list = ls())
+
+
+# This is a complex way of loading al required packages. simply calling:
+# library(readxl) should suffice.
+
+# Load dependencies
+install_and_load <- function(packages) {
+  installed_packages <- rownames(installed.packages())                                # Check installed packages
+  to_install <- packages[!(packages %in% installed_packages)]
+  if (length(to_install) > 0) {                                                       # Install missing
+    install.packages(to_install, dependencies = TRUE)
+  }
+  suppressMessages(lapply(packages, require, character.only = TRUE, quietly = TRUE))  # Load
+}
+install_and_load(c("tidyverse", "readxl", "ggplot2", "plotly", "dplyr", "lubridate", "readr", "igraph", "visNetwork"))
+
+```
+
+# Question 5
+
+
+
+```{r question_5, message=FALSE, warning=FALSE}
+
+# Load data
+graph <- read_delim("data/assignment2/graph.csv", ";", escape_double = FALSE, trim_ws = TRUE)
+attributes <- read_delim("data/assignment2/attributes.csv", ";", escape_double = FALSE, trim_ws = TRUE)
+
+# Rename cols
+colnames(graph) <- c("Source", "Target", "Type", "Weight")
+colnames(attributes) <- c("Id", "Label", "Fighting", "Centrality")
+
+# merge
+g <- graph_from_data_frame(d = graph, vertices = attributes, directed = FALSE)
+
+# Remove nodes with no connections
+g <- delete.vertices(g, V(g)[degree(g) == 0])
+
+# Calculate eigencentrality
+V(g)$eigencentrality <- eigen_centrality(g, directed = FALSE)$vector
+
+# Perform clustering with cluster_spinglass (without weights)
+clusters <- cluster_spinglass(g)
+
+# Set cluster membership as vertex attribute
+V(g)$cluster <- membership(clusters)
+
+
+# Debugging - had some issues with dataframe merging?
+# Check graph vertices
+#print(V(g)$name)
+
+# Check for issues in the vertex attributes
+#if (!all(V(g)$name %in% attributes$Id)) {
+#    print("Mismatch between graph vertices and attribute IDs!")
+#} else {
+#    print("All vertex names match the attribute IDs.")
+#}
+
+# Plot
+nodes <- data.frame(
+  id = V(g)$name,
+  label = V(g)$Label,
+  value = V(g)$eigencentrality * 10,
+  group = V(g)$cluster,
+  title = paste("Centrality:", round(V(g)$eigencentrality, 2))
+)
+
+edges <- data.frame(
+  from = as.character(graph$Source),
+  to = as.character(graph$Target),
+  color = ifelse(E(g)$Weight > 0, "green", "red"),
+  dashes = ifelse(E(g)$Weight > 0, FALSE, TRUE),
+  title = paste("Weight:", E(g)$Weight)
+)
+
+
+# Plot
+visNetwork(nodes, edges) %>%
+  visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
+  visLayout(randomSeed = 123) %>%
+  visLegend(useGroups = TRUE) %>%
+  visPhysics(stabilization = TRUE)
+
 ```

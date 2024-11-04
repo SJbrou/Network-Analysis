@@ -4,9 +4,97 @@
     "href": "index.html",
     "title": "Supply Chain Data Analytics",
     "section": "",
-    "text": "Home\nThese are my resources for the Supply Chain Data Analytics course. I like ordering these so I can order my thoughts. Hopefully you’ll find in them as well\nThe site is hosted on github pages and written and build using Rstudio and Quarto. You can always reach out to me if you want to chat about hosting your own sites on github. I’m available.",
+    "text": "Home\nThese are my resources for the Network Analysis course. I like ordering these so I can order my thoughts. Hopefully you’ll find in them as well\nThe site is hosted on github pages and written and build using Rstudio and Quarto. You can always reach out to me if you want to chat about hosting your own sites on github. I’m available.",
     "crumbs": [
       "Home"
+    ]
+  },
+  {
+    "objectID": "assignment2.html",
+    "href": "assignment2.html",
+    "title": "Assignment week 2",
+    "section": "",
+    "text": "Question 1.\nClustering Coefficient of B: - Direct neighbors of B: A, C, E, F, & G → ( n = 5 ) - Potential links: ( ) → ( = 10 ) potential links - Existing links between neighbors: A-C, A-E, E-F, F-G (4 links) - Clustering coefficient of B: ( = 0.4 )\nClustering Coefficient of G: - Direct neighbors of G: A, D, & F → ( n = 3 ) - Potential links: ( ) → ( = 3 ) potential links - Existing link between neighbors: B-F (1 link) - Clustering coefficient of G: ( )",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
+    ]
+  },
+  {
+    "objectID": "assignment2.html#section",
+    "href": "assignment2.html#section",
+    "title": "Assignment week 2",
+    "section": "1.1",
+    "text": "1.1\nVisualize the time series for the entire duration\n\n# Load the data",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
+    ]
+  },
+  {
+    "objectID": "assignment2.html#section-1",
+    "href": "assignment2.html#section-1",
+    "title": "Assignment week 2",
+    "section": "3",
+    "text": "3\na. Table:\n\n\n\n\nProduct A\nProduct B\nNot enter\n\n\nProduct A\n-10M, -10M\n10M, 10M\n15M, 0\n\n\nProduct B\n10M, 10M\n5M, 5M\n15M, 0\n\n\nNot enter\n0, 15M\n0, 15M\n0,0\n\n\n\nB. One of your employees argues that you should enter the market (although he is not sure\nwhat product you should produce) because no matter what firm 2 does, entering and\nproducing product B is better than not entering. Evaluate this argument.\nObviously making any profit can be valued over making no profit. Thus producing product B &gt; not entering the market\nC. Another employee agrees with the person in part (b) and argues that as strategy A could\nresult in a loss (if the other firm also produces A) you should enter and produce B. If both\nfirms reason this way, and thus enter and produce product B, will their play of the game\nform a Nash equilibrium? Explain.\nThis is NOT a Nash equilibrium as each firm has a better alternative: they can increase profits by switching to product A if they know the other is producing the other product.\nD. find all the pure strategy Nash equilibria of this game (Product A, Product B) or (Product B, Product A)\nBefore starting the exercises, lets clear the workspace and load dependencies.\n\n# Clear workspace\nrm(list = ls())\n\n\n# This is a complex way of loading al required packages. simply calling:\n# library(readxl) should suffice.\n\n# Load dependencies\ninstall_and_load &lt;- function(packages) {\n  installed_packages &lt;- rownames(installed.packages())                                # Check installed packages\n  to_install &lt;- packages[!(packages %in% installed_packages)]\n  if (length(to_install) &gt; 0) {                                                       # Install missing\n    install.packages(to_install, dependencies = TRUE)\n  }\n  suppressMessages(lapply(packages, require, character.only = TRUE, quietly = TRUE))  # Load\n}\ninstall_and_load(c(\"tidyverse\", \"readxl\", \"ggplot2\", \"plotly\"))",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
+    ]
+  },
+  {
+    "objectID": "assignment2.html#section-2",
+    "href": "assignment2.html#section-2",
+    "title": "Assignment week 2",
+    "section": "1.1",
+    "text": "1.1\nVisualize the time series for the entire duration\n\n# Load the data",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
+    ]
+  },
+  {
+    "objectID": "assignment2.html#assignment-1.",
+    "href": "assignment2.html#assignment-1.",
+    "title": "Assignment week 2",
+    "section": "",
+    "text": "Clustering Coefficient of B:\n\nDirect neighbors of B: A, C, E, F, & G → ( n = 5 )\nPotential links: ( ) → ( = 10 ) potential links\nExisting links between neighbors: A-C, A-E, E-F, F-G (4 links)\nClustering coefficient of B: ( = 0.4 )\n\n\n\nClustering Coefficient of G:\n\nDirect neighbors of G: A, D, & F → ( n = 3 )\nPotential links: ( ) → ( = 3 ) potential links\nExisting link between neighbors: B-F (1 link)\nClustering coefficient of G: ( )",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
+    ]
+  },
+  {
+    "objectID": "assignment2.html#question-2",
+    "href": "assignment2.html#question-2",
+    "title": "Assignment week 2",
+    "section": "Question 2",
+    "text": "Question 2\nAssuming higher values correspond to higher payoffs there is one dominant theory for all players, and thus 1 equilibrium.\n\n\n\n1,4\n6,5\n\n\n3,3\n4,2",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
+    ]
+  },
+  {
+    "objectID": "assignment2.html#question-3",
+    "href": "assignment2.html#question-3",
+    "title": "Assignment week 2",
+    "section": "Question 3",
+    "text": "Question 3\na. Table:\n\n\n\n\nProduct A\nProduct B\nNot enter\n\n\nProduct A\n-10M, -10M\n10M, 10M\n15M, 0\n\n\nProduct B\n10M, 10M\n5M, 5M\n15M, 0\n\n\nNot enter\n0, 15M\n0, 15M\n0,0\n\n\n\nB. One of your employees argues that you should enter the market (although he is not sure\nwhat product you should produce) because no matter what firm 2 does, entering and\nproducing product B is better than not entering. Evaluate this argument.\nObviously making any profit can be valued over making no profit. Thus producing product B &gt; not entering the market\nC. Another employee agrees with the person in part (b) and argues that as strategy A could\nresult in a loss (if the other firm also produces A) you should enter and produce B. If both\nfirms reason this way, and thus enter and produce product B, will their play of the game\nform a Nash equilibrium? Explain.\nThis is NOT a Nash equilibrium as each firm has a better alternative: they can increase profits by switching to product A if they know the other is producing the other product.\nD. find all the pure strategy Nash equilibria of this game\n(Product A, Product B) or (Product B, Product A)\nE. Another employee of your firm suggests merging the two firms and deciding co-operatively\non strategies so as to maximize the sum of profits. Ignoring whether this merger would\nbe allowed by the regulators do you think its a good idea? Explain.\n\nNo. In a merger the maximal profit would be 20M. Assume one firm starts producing product A, the optimal strategy for the other firm is to produce the other product, in which case the total profits of the firms combined would also be 20M. As it is in both firms intrests to follow the cooperative strategy, there is no incentive to merge.",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
+    ]
+  },
+  {
+    "objectID": "assignment2.html#question-4",
+    "href": "assignment2.html#question-4",
+    "title": "Assignment week 2",
+    "section": "Question 4",
+    "text": "Question 4\nBefore starting the exercises, lets clear the workspace and load dependencies.\n\n\nCode\n# Clear workspace\nrm(list = ls())\n\n\n# This is a complex way of loading al required packages. simply calling:\n# library(readxl) should suffice.\n\n# Load dependencies\ninstall_and_load &lt;- function(packages) {\n  installed_packages &lt;- rownames(installed.packages())                                # Check installed packages\n  to_install &lt;- packages[!(packages %in% installed_packages)]\n  if (length(to_install) &gt; 0) {                                                       # Install missing\n    install.packages(to_install, dependencies = TRUE)\n  }\n  suppressMessages(lapply(packages, require, character.only = TRUE, quietly = TRUE))  # Load\n}\ninstall_and_load(c(\"tidyverse\", \"readxl\", \"ggplot2\", \"plotly\", \"dplyr\", \"lubridate\", \"readr\", \"igraph\", \"visNetwork\"))",
+    "crumbs": [
+      "Assignments",
+      "Assignment 2"
     ]
   }
 ]
