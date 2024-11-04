@@ -3,8 +3,6 @@ format:
   html:
     code-fold: show
     toc: false
-    margin-left: 2rem
-    margin-right: 2rem
     width: full
 ---
 
