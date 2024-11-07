@@ -87,10 +87,115 @@ install_and_load <- function(packages) {
   }
   suppressMessages(lapply(packages, require, character.only = TRUE, quietly = TRUE))  # Load
 }
-install_and_load(c("tidyverse", "readxl", "ggplot2", "plotly", "dplyr", "lubridate", "readr", "igraph", "visNetwork"))
+install_and_load(c("tidyverse", "readxl", "ggplot2", "plotly", "dplyr", "lubridate", "readr", "igraph", "visNetwork", "threejs", "igraphdata", "networkD3"))
 
 ```
 
+```{r codeQ4, message=FALSE, warning=FALSE, results='hide'}
+# Read in Data
+
+data("USairports")
+
+# Now simply data and remove self loops (they make for horrible plots)
+
+g <- simplify(USairports, remove.loops = TRUE, remove.multiple = TRUE)
+
+# Now you are good to go to work with the graph "g"
+
+# a: Plot the data
+pdf("Data_plot_g.pdf", width = 20, height = 20)
+plot(g,
+     vertex.label = NA,
+     vertex.color = "red",
+     vertex.frame.color = "black",
+     vertex.label.cex = 0.5,
+     vertex.size =  1.5,
+     vertex.shape = "circle",
+     edge.color = 'pink',
+     edge.width = 0.5,
+     edge.arrow.width = 0.01,
+     edge.arrow.size = 0.05,
+     layout = layout_nicely(g),
+     main = "Data Plot of US Airport Network")
+dev.off()
+
+# b: What is the mean distance of this network?
+g.apl <- mean_distance(g, directed = TRUE)
+g.apl #3.52743
+
+# Generating 1000 random graphs
+gl <- vector('list', 1000)
+for(i in 1:1000) {
+  gl[[i]] <- erdos.renyi.game(n = gorder(g),
+                              p.or.m = edge_density(g),
+                              type = "gnp")
+}
+
+# Calculating average path length of 1000 random graps
+gl.apls <- unlist(lapply(gl, mean_distance, directed = FALSE))
+
+hist(gl.apls, breaks = 10, xlim = range(c(2.5, 4)))
+abline(v = mean_distance(g, directed = FALSE),
+       col = "red",
+       lty = 3,
+       lwd = 2)
+
+# c: Calculate the betweenness measure for each node
+g.b <- betweenness(g)
+pdf('Betweenness.g.pdf', width = 10, height = 10)
+plot(g,
+     vertex.color = "red",
+     vertex.frame.color = "black",
+     vertex.label.cex = 0.5,
+     vertex.size = (sqrt(g.b)+1)/50,
+     vertex.shape = "circle",
+     edge.color = "pink",
+     edge.width = 0.5,
+     edge.arrow.width = 0.01,
+     edge.arrow.size = 0.05,
+     layout=layout_nicely(g))
+dev.off()
+
+g.b <- betweenness(g)
+max_betweenness <- max(g.b)
+largest_betweenness_node <- which(g.b == max_betweenness)
+print(max_betweenness)
+#[1] 203156.7
+print(largest_betweenness_node)
+# ANC
+
+# d: Calculate the out-degree for each node. What is the largest one?
+out_degree_values <- degree(g, mode = "out")
+
+# Find the node with the maximum out-degree
+max_out_degree <- max(out_degree_values)
+max_out_degree_node <- which(out_degree_values == max_out_degree)
+
+max_out_degree #163
+max_out_degree_node #ATL 148
+
+# Scale out-degree values for visualization (apply log transformation for better size scaling)
+vertex_sizes_out_degree <- log(out_degree_values + 1) * 3.5  
+
+# Plot the graph with vertex size based on out-degree
+pdf("Out_degree.pdf", width = 10, height = 10)
+plot(g, 
+     vertex.color = "pink",
+     vertex.frame.color = "black",
+     vertex.size = vertex_sizes_out_degree,
+     vertex.label.cex = 0.5,
+     vertex.size = 0.5,
+     vertex.shape = "circle",
+     edge.color = "skyblue",
+     edge.width = 0.5,
+     edge.arrow.width = 0.01,
+     edge.arrow.size = 0.05,
+     layout=layout_nicely(g),
+     main = "US Airports Network with Vertex Size Based on Out-Degree"
+)
+dev.off()
+
+```
 # Question 5
 
 
@@ -101,37 +206,53 @@ install_and_load(c("tidyverse", "readxl", "ggplot2", "plotly", "dplyr", "lubrida
 graph <- read_delim("data/assignment2/graph.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 attributes <- read_delim("data/assignment2/attributes.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 
-# Rename cols
+# Rename columns
 colnames(graph) <- c("Source", "Target", "Type", "Weight")
 colnames(attributes) <- c("Id", "Label", "Fighting", "Centrality")
 
-# merge
+# Merge data
 g <- graph_from_data_frame(d = graph, vertices = attributes, directed = FALSE)
 
-# Remove nodes with no connections
+# Remove nodes without edges
 g <- delete.vertices(g, V(g)[degree(g) == 0])
 
 # Calculate eigencentrality
-V(g)$eigencentrality <- eigen_centrality(g, directed = FALSE)$vector
+V(g)$eigencentrality <- eigen_centrality(g)$vector
 
-# Perform clustering with cluster_spinglass (without weights)
+# Allies green, enemies red
+E(g)$color <- ifelse(E(g)$Weight == 1, "lightgreen", "red")
+
+# Define vertex sizes and labels based on eigencentrality
+V(g)$size <- V(g)$eigencentrality
+V(g)$label <- round(V(g)$eigencentrality, 2)
+
+# Plot
+plot(g,
+     vertex.label = V(g)$label,
+     vertex.label.cex = 0.8,
+     vertex.label.color = "black",
+     vertex.size = 10 * V(g)$eigencentrality,
+     vertex.color = "white",
+     vertex.frame.color = "black",
+     vertex.shape = "circle",
+     edge.width = 1,
+     edge.color = E(g)$color,
+     layout = layout_with_fr(g, niter = 1000),
+     main = "Plot with Eigencentrality and Allies/Enemies")
+
+
+```
+
+
+
+```{r}
+# Given spinglass cluster
 clusters <- cluster_spinglass(g)
 
 # Set cluster membership as vertex attribute
 V(g)$cluster <- membership(clusters)
 
-
-# Debugging - had some issues with dataframe merging?
-# Check graph vertices
-#print(V(g)$name)
-
-# Check for issues in the vertex attributes
-#if (!all(V(g)$name %in% attributes$Id)) {
-#    print("Mismatch between graph vertices and attribute IDs!")
-#} else {
-#    print("All vertex names match the attribute IDs.")
-#}
-
+# Couldn't get graphJS to work. 
 # Plot
 nodes <- data.frame(
   id = V(g)$name,
@@ -149,7 +270,6 @@ edges <- data.frame(
   title = paste("Weight:", E(g)$Weight)
 )
 
-
 # Plot
 visNetwork(nodes, edges) %>%
   visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
@@ -158,3 +278,54 @@ visNetwork(nodes, edges) %>%
   visPhysics(stabilization = TRUE)
 
 ```
+
+
+
+```{r fastgreedcluster}
+# Fast Greedy clustering
+fast_greedy_clusters <- cluster_fast_greedy(g)
+
+# Set clusters as vertex attribute
+V(g)$cluster <- membership(fast_greedy_clusters)
+
+
+# Couldn't get grapJS to work... used visNetwork instead. 
+
+nodes <- data.frame(
+  id = V(g)$name,
+  label = V(g)$Label,
+  value = V(g)$eigencentrality * 10,
+  group = V(g)$cluster,
+  title = paste("Centrality:", round(V(g)$eigencentrality, 2))
+)
+
+# Create edges data frame for visNetwork
+edges <- data.frame(
+  from = as.character(graph$Source),
+  to = as.character(graph$Target),
+  color = ifelse(E(g)$Weight > 0, "green", "red"),
+  dashes = ifelse(E(g)$Weight > 0, FALSE, TRUE),
+  title = paste("Weight:", E(g)$Weight)
+)
+
+# Plot
+visNetwork(nodes, edges) %>%
+  visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
+  visLayout(randomSeed = 123) %>%
+  visLegend(useGroups = TRUE) %>%
+  visPhysics(stabilization = TRUE)
+
+
+```
+
+
+### Differences between the clustering models
+
+springlass clustering takes into account both positive and negative weights, while fast greedy focusses more on modularity.\
+For instance, fast and greedy does not show the intricacies between the blue and pink group that the springglass clustering does show.\
+However, fast and greedy shows more differences in the green cluster.\
+Appearantly, the clustering methods value the positive edge from MM-y and MM-P to BARDC-JK, or their edge to DFLR differently.\
+
+The spinglass clustering method accounts for both types of interactions (positive and negative), which is why it detects relationships and communities (such as between the blue and pink groups) that fast greedy clustering overlooks.
+fast greedy seems to emphasize the structure of the green cluster more than spinglass, suggesting it values modularity-based separations more than the detailed dynamics of edge relationships (positive/negative).
+This is also seen in what we think are differences for edge sensitify: dor instance, the relationship between MM-y, MM-P, BARDC-JK, and DFLR seems to be valued differently between the clustering methods. Cluster_spinglass likely views the relationships more holistically, factoring in both positive and negative weights, while fast_greedy focuses more on the positive connections and modularity, leading to differences in how edges are interpreted and clusters are formed.
