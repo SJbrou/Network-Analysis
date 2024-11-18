@@ -1,0 +1,153 @@
+---
+format: 
+  html:
+    code-fold: show
+    toc: false
+    width: full
+---
+
+
+# Assignment week 4 {.unnumbered}
+
+Questions can be found on [canvas](https://canvas.vu.nl/courses/78407/assignments/361410)
+
+
+Before starting the exercises, lets clear the workspace and load dependencies.
+
+
+```{r setup, results='hide'}
+# Clear workspace
+rm(list = ls())
+
+
+# This is a complex way of loading al required packages. simply calling:
+# library(readxl) should suffice.
+
+# Load dependencies
+install_and_load <- function(packages) {
+  installed_packages <- rownames(installed.packages())                                # Check installed packages
+  to_install <- packages[!(packages %in% installed_packages)]
+  if (length(to_install) > 0) {                                                       # Install missing
+    install.packages(to_install, dependencies = TRUE)
+  }
+  suppressMessages(lapply(packages, require, character.only = TRUE, quietly = TRUE))  # Load
+}
+install_and_load(c("tidyverse", "readxl", "ggplot2", "plotly", "dplyr", "lubridate", "readr", "shiny"))
+
+```
+
+```{r message=FALSE, warning=FALSE, results='hide'}
+# Read in Data
+
+data <- read_csv("data/assignment4/trade_data.csv")
+
+# Remove columns with only NA
+data <- data[, colSums(is.na(data)) < nrow(data)]
+
+
+
+```
+
+Lets check if the data in the numerical columns are normally distributed, and if there are any outliers. 
+
+
+```{r message=FALSE, warning=FALSE}
+
+# Remove columns that are entirely NA
+numerical_data <- data %>%
+  select(where(is.numeric)) %>%
+  select(where(~ !all(is.na(.))))
+
+# Function to check for outliers and normality
+analyze_columns <- function(data) {
+  analysis <- lapply(names(data), function(col) {
+    col_data <- data[[col]]
+    
+    # Detect outliers using the Z-score method
+    z_scores <- (col_data - mean(col_data, na.rm = TRUE)) / sd(col_data, na.rm = TRUE)
+    outlier_count <- sum(abs(z_scores) > 3, na.rm = TRUE)
+    
+    
+    list(
+      Column = col,
+      Outliers = outlier_count
+    )
+  })
+  
+  do.call(rbind.data.frame, analysis)
+}
+
+# Analyze the numerical columns
+analysis_results <- analyze_columns(numerical_data)
+
+# Display results in a formatted table
+knitr::kable(analysis_results, format = "html", caption = "Outlier and Normality Analysis")
+
+
+
+```
+
+```{r}
+
+# Function to create a histogram for each column
+plot_histogram <- function(column_name, data) {
+  column_data <- data[[column_name]]
+  plot_ly(
+    x = column_data,
+    type = "histogram",
+    nbinsx = 30,
+    name = column_name
+  ) %>%
+    layout(
+      title = paste("Histogram of", column_name),
+      xaxis = list(title = column_name),
+      yaxis = list(title = "Count")
+    )
+}
+
+# Create a dropdown menu for selecting columns
+create_interactive_histogram <- function(data) {
+  # List of all numerical column names
+  column_names <- names(data)
+  
+  # Generate a plot for each column
+  plots <- lapply(column_names, function(col) {
+    plot_histogram(col, data)
+  })
+  
+  # Create a subplot where each column's histogram is an individual trace
+  fig <- subplot(plots, nrows = 1, shareX = TRUE, shareY = TRUE)
+  
+  # Add a dropdown menu to select the histogram to display
+  fig <- fig %>%
+    layout(
+      title = "Select a Histogram",
+      updatemenus = list(
+        list(
+          yanchor = "top",
+          xanchor = "left",
+          buttons = lapply(1:length(column_names), function(i) {
+            list(
+              method = "relayout",
+              args = list(list(
+                "xaxis.title" = column_names[i],
+                "yaxis.title" = "Count",
+                "title" = paste("Histogram of", column_names[i])
+              )),
+              label = column_names[i]
+            )
+          })
+        )
+      )
+    )
+  
+  return(fig)
+}
+
+# Call the function with your data
+interactive_histogram <- create_interactive_histogram(numerical_data)
+
+# Show the interactive plot
+interactive_histogram
+
+```
